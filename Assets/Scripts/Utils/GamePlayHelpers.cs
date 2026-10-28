@@ -6,7 +6,7 @@ public class GamePlayHelpers : MonoBehaviour
 
     private static Transform GetRoot() {
         if (_root == null) {
-            GameObject rootObject = GameObject.Find("SceneRoot");
+            GameObject rootObject = GameObject.Find("Scene");
             if (rootObject != null) _root = rootObject.transform;
         }
         if (_root == null) Debug.LogError("Root object cannot be found!");

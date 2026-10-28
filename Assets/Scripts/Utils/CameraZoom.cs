@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Voert alleen camera-acties uit. Beslist zelf niets: GamePlay roept deze
+// routines aan en wacht erop, zodat er altijd maar één ding tegelijk gebeurt.
 public class CameraZoom : MonoBehaviour
 {
     [Header("Doelpunten")]
@@ -18,9 +20,8 @@ public class CameraZoom : MonoBehaviour
     public float fadeDuration = 1.0f;
 
     [Header("Timing")]
-    public float tweenDuration = 1.0f;     
-    public float dwellTime = 3.0f;         
-    public float cooldownTime = 1.5f;      
+    public float tweenDuration = 1.0f;
+    public float dwellTime = 3.0f;
 
     [Header("Pan Instellingen")]
     public float panAngle = 15f;
@@ -28,21 +29,11 @@ public class CameraZoom : MonoBehaviour
     [Header("Vloeiende Curve")]
     public AnimationCurve zoomCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-    private bool isBusy = false;
     private float fadeAlpha = 0f;
-
-    public bool IsBusy
-    {
-        get { return isBusy; }
-    }
 
     void Start()
     {
-        if (startPoint != null)
-        {
-            transform.position = startPoint.position;
-            transform.rotation = startPoint.rotation;
-        }
+        ResetToStart();
     }
 
     private void OnGUI()
@@ -50,28 +41,14 @@ public class CameraZoom : MonoBehaviour
         if (fadeAlpha > 0f)
         {
             Color oldColor = GUI.color;
-            GUI.color = new Color(0, 0, 0, fadeAlpha);
+            GUI.color = new Color(1, 0, 0, fadeAlpha);
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
             GUI.color = oldColor;
         }
     }
 
-    public void TriggerZoom()
+    public IEnumerator PeekThroughWindow()
     {
-        if (isBusy) return;
-        StartCoroutine(ZoomRoutine());
-    }
-
-    public void TriggerDoorRoutine()
-    {
-        if (isBusy) return;
-        StartCoroutine(DoorRoutine());
-    }
-
-    private IEnumerator ZoomRoutine()
-    {
-        isBusy = true;
-
         yield return MoveCameraRoutine(startPoint.position, startPoint.rotation, windowTarget.position, windowTarget.rotation);
 
         float dwellElapsed = 0f;
@@ -91,28 +68,40 @@ public class CameraZoom : MonoBehaviour
         }
 
         yield return MoveCameraRoutine(targetPos, baseTargetRot, startPoint.position, startPoint.rotation);
-        yield return new WaitForSeconds(cooldownTime);
-
-        isBusy = false;
     }
 
-    private IEnumerator DoorRoutine()
+    public IEnumerator GoToDoorAndOpen()
     {
-        isBusy = true;
-
-        // Stap 1: Camera gaat naar doorTarget
         yield return MoveCameraRoutine(startPoint.position, startPoint.rotation, doorTarget.position, doorTarget.rotation);
 
-        // Stap 2: Activeer "OpenDoor" trigger
         if (doorAnimator != null)
         {
             doorAnimator.SetTrigger("OpenDoor");
         }
+        AudioManager.PlaySound("DoorOpen");
 
-        // Stap 3: Wacht 2 seconden
         yield return new WaitForSeconds(2f);
+    }
 
-        // Stap 4: Zoek een random "Head" object in de hiërarchie en pas positie aan
+    // De regels gebruiken Camera.main.WorldToViewportPoint, dus ze moeten getest
+    // worden vanuit het deurstandpunt. Dit zet de camera daar heel even neer en
+    // weer terug binnen hetzelfde frame, zodat de speler er niets van ziet.
+    public bool TestFromDoorView(RuleSet ruleset)
+    {
+        Vector3 oldPos = transform.position;
+        Quaternion oldRot = transform.rotation;
+
+        transform.position = doorTarget.position;
+        transform.rotation = doorTarget.rotation;
+        bool safe = ruleset.TestAll();
+
+        transform.position = oldPos;
+        transform.rotation = oldRot;
+        return safe;
+    }
+
+    public IEnumerator KillerSequence()
+    {
         Transform randomHead = FindRandomKillerViewPoint();
         if (randomHead != null)
         {
@@ -122,7 +111,6 @@ public class CameraZoom : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        // Stap 5: Fade naar zwart
         float elapsedFade = 0f;
         while (elapsedFade < fadeDuration)
         {
@@ -130,21 +118,25 @@ public class CameraZoom : MonoBehaviour
             fadeAlpha = Mathf.Clamp01(elapsedFade / fadeDuration);
             yield return null;
         }
+    }
 
-        // Stap 6: Spring terug, reset animatie en beëindig fade abrupt
+    public void CloseDoor()
+    {
+        if (doorAnimator != null)
+        {
+            doorAnimator.SetTrigger("Reset");
+        }
+    }
+
+    public void ResetToStart()
+    {
         if (startPoint != null)
         {
             transform.position = startPoint.position;
             transform.rotation = startPoint.rotation;
         }
 
-        if (doorAnimator != null)
-        {
-            doorAnimator.SetTrigger("Reset");
-        }
-
         fadeAlpha = 0f;
-        isBusy = false;
     }
 
     private Transform FindRandomKillerViewPoint()
@@ -162,7 +154,7 @@ public class CameraZoom : MonoBehaviour
 
         if (heads.Count > 0)
         {
-            int randomIndex = Random.Range(0, heads.Count);
+            int randomIndex = UnityEngine.Random.Range(0, heads.Count);
             return heads[randomIndex];
         }
 
