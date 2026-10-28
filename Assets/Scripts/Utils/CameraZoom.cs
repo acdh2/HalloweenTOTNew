@@ -113,7 +113,7 @@ public class CameraZoom : MonoBehaviour
         yield return new WaitForSeconds(2f);
 
         // Stap 4: Zoek een random "Head" object in de hiërarchie en pas positie aan
-        Transform randomHead = FindRandomHead();
+        Transform randomHead = FindRandomKillerViewPoint();
         if (randomHead != null)
         {
             transform.position = randomHead.position;
@@ -147,14 +147,14 @@ public class CameraZoom : MonoBehaviour
         isBusy = false;
     }
 
-    private Transform FindRandomHead()
+    private Transform FindRandomKillerViewPoint()
     {
         Transform[] allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
         List<Transform> heads = new List<Transform>();
 
         foreach (Transform t in allTransforms)
         {
-            if (t.name == "Head")
+            if (t.name == "KillerViewPoint")
             {
                 heads.Add(t);
             }

@@ -864,7 +864,7 @@ GameObject:
   - component: {fileID: 8276289018010817603}
   - component: {fileID: 2109483293557154750}
   m_Layer: 0
-  m_Name: Head
+  m_Name: KillerViewPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
