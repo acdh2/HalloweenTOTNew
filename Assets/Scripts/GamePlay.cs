@@ -191,7 +191,7 @@ public class GamePlay : GamePlayBase
 
             phase = Phase.Resolve;
             int livesBefore = lives;
-            yield return Resolve(ruleset);
+            yield return Resolve(ruleset, visitors);
             lostLife = lives < livesBefore;
 
             // After the last life the visitors stay, so the killer remains in view.
@@ -257,7 +257,7 @@ public class GamePlay : GamePlayBase
 
     // Door open + unsafe: death. Door closed + safe: you wrongly didn't
     // open up. Either way you lose a life.
-    IEnumerator Resolve(RuleSet ruleset)
+    IEnumerator Resolve(RuleSet ruleset, GameObject visitors)
     {
         List<string> brokenRules = ruleset.FailedRules();
         bool safe = brokenRules.Count == 0;
@@ -293,13 +293,21 @@ public class GamePlay : GamePlayBase
             }
         }
         else {
+            AudioManager.PlaySound(safe ? "VisitorsDisappointed" : "ImpostorsLeave");
+
+            // Sent away by the lights: the horde vanishes in the dark while
+            // grumbling, and the verdict follows once the lights are back on.
+            // The rules were checked above, so hiding the visitors is fine.
+            if (hordeSentAway) {
+                visitors.SetActive(false);
+                yield return new WaitWhile(() => lightsOff);
+            }
+
             if (safe) {
-                AudioManager.PlaySound("VisitorsDisappointed");
                 yield return ShowMessage("It was safe... you should have opened the door!");
                 yield return LoseLife();
             }
             else {
-                AudioManager.PlaySound("ImpostorsLeave");
                 yield return ShowMessage("You didn't open the door. Smart choice.\nYou are safe...| for now");
             }
         }
