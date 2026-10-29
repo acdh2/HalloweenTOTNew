@@ -32,6 +32,17 @@ public class GamePlayHelpers : MonoBehaviour
         return FindRecursive(root, name);
     }
 
+    // Turns on every object with this name under root. Passing true to
+    // GetComponentsInChildren also finds the objects that are turned off.
+    public static void ActivateAll(string name)
+    {
+        if (root == null) return;
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == name) t.gameObject.SetActive(true);
+        }
+    }
+
     public static int GetLastAudioId(string tag)
     {
         return AudioManager.GetLastPlayedId(tag);

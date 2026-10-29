@@ -10,12 +10,16 @@ public class Rule
     public string Feedback;
     // True when the visitors are dangerous according to this rule.
     public Func<bool> Condition;
+    // Name of the objects under root that are turned on once this rule is in play.
+    // They can be turned off in the editor, so they only show up with the rule.
+    public string ActivateObjects;
 
-    public Rule(string description, string feedback, Func<bool> condition)
+    public Rule(string description, string feedback, Func<bool> condition, string activateObjects = null)
     {
         Description = description;
         Feedback = feedback;
         Condition = condition;
+        ActivateObjects = activateObjects;
     }
 
     public bool Test() => Condition?.Invoke() ?? false;
@@ -50,6 +54,7 @@ public class RuleSet
         Rule newRule = available[UnityEngine.Random.Range(0, available.Count)];
         _rules.Add(newRule);
         number = _rules.Count;
+        if (!string.IsNullOrEmpty(newRule.ActivateObjects)) GamePlayHelpers.ActivateAll(newRule.ActivateObjects);
         return newRule.Description;
     }
 
@@ -75,6 +80,16 @@ public class RuleSet
         else _inactive.Add(rule);
         number = _rules.IndexOf(rule) + 1;
         return rule.Description;
+    }
+
+    // Turns on the objects of every rule that has been in play. Needed after
+    // instantiating a prefab, because its copies of those objects start off again.
+    public void ActivateRuleObjects()
+    {
+        foreach (var rule in _rules)
+        {
+            if (!string.IsNullOrEmpty(rule.ActivateObjects)) GamePlayHelpers.ActivateAll(rule.ActivateObjects);
+        }
     }
 
     public IEnumerable<string> GetRules()

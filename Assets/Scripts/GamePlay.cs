@@ -63,9 +63,9 @@ public class GamePlay : GamePlayBase
             //new Rule("no one is wearing a black hat", "no one was wearing a black hat", () => !GamePlayHelpers.Exists("Hat2")),
             //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
-            new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3),
-            new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1")),
-            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("Knocking") == 1),//scream sound
+            new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
+            new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
+            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("Knocking") == 1, ""),//scream sound
         };
 
     }
@@ -150,6 +150,7 @@ public class GamePlay : GamePlayBase
             if (garden != null) Destroy(garden);
             garden = Instantiate(gardenPrefab, GamePlayHelpers.root, true);
             garden.name = gardenPrefab.name;
+            ruleset.ActivateRuleObjects();
 
             phase = Phase.Waiting;
             float waitTime = Random.Range(minWaitTime, maxWaitTime);
@@ -191,6 +192,7 @@ public class GamePlay : GamePlayBase
             // Parent under the Scene root, otherwise the rules can't find the visitors.
             GameObject visitors = Instantiate(visitorsPrefab, GamePlayHelpers.root, true);
             visitors.name = visitorsPrefab.name;
+            ruleset.ActivateRuleObjects();
             AudioManager.PlaySound("VisitorsArrive");
 
             phase = Phase.Decide;
