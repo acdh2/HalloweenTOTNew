@@ -66,7 +66,8 @@ public class GamePlay : GamePlayBase
             //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
             //new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
-            new Rule("candle " + randomNumber + " or less :)", "nuh uh", () => GamePlayHelpers.Count("Candle") <= randomNumber),
+            new Rule("there are less than " + randomNumber + " candles", "there were less than " + randomNumber + " candles", () => GamePlayHelpers.Count("Candle") < randomNumber),
+            new Rule("the porch light is red", "the porch light was red",() => GamePlayHelpers.GetColor("Point Light") == Color.red, "Point Light"),
             new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
             new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") == 0, ""),
         };
