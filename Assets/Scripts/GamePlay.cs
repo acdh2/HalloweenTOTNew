@@ -55,6 +55,8 @@ public class GamePlay : GamePlayBase
     float windowReadyTime = 0f;
     bool lightsOff = false;
     float lightSwitchReadyTime = 0f;
+    int randomNumber;
+
 
     void Awake()
     {
@@ -63,7 +65,8 @@ public class GamePlay : GamePlayBase
             //new Rule("no one is wearing a black hat", "no one was wearing a black hat", () => !GamePlayHelpers.Exists("Hat2")),
             //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
-            new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
+            //new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
+            new Rule("candle " + randomNumber + " or less :)", "nuh uh", () => GamePlayHelpers.Count("Candle") <= randomNumber),
             new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
             new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") == 0, ""),
         };
@@ -182,7 +185,7 @@ public class GamePlay : GamePlayBase
                 else if (canAdd) {
                     string rule = ruleset.AddRule(out int number);
                     AudioManager.PlaySound("NewRule");
-                    yield return ShowMessage($"Rule #{number}: |Don't open the door if\n{rule}", false, ruleMessageDuration);
+                    yield return ShowMessage($"Rule #{number}: |Don't answer if\n{rule}", false, ruleMessageDuration);
                 }
             }
 
