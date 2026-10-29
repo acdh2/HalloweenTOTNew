@@ -97,10 +97,8 @@ MonoBehaviour:
   - {fileID: 919132149155446097, guid: 5a0f3c38314d0724c8378ca8a04c4a4b, type: 3}
   materials:
   - {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
-  - {fileID: 2100000, guid: 16e20754de372594ea8f89f5586223d2, type: 2}
+  - {fileID: 2100000, guid: 45bb1f6d712eb2f488723dfb4c22fa01, type: 2}
   - {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
-  - {fileID: 2100000, guid: 71f1a728a3b04e541b95b8ee979b7636, type: 2}
-  - {fileID: 2100000, guid: fc3cfab38fdf6bd44a87a76f316a2df5, type: 2}
 --- !u!1 &7939898843390997373
 GameObject:
   m_ObjectHideFlags: 0
