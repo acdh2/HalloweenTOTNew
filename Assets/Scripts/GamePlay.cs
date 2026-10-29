@@ -55,10 +55,11 @@ public class GamePlay : GamePlayBase
     void Awake()
     {
         RuleSet.all = new List<Rule> {
-            new Rule("no one is wearing a purple hat", "someone was wearing a purple hat", () => !GamePlayHelpers.Exists("Hat1")),
-            new Rule("someone is wearing a black hat", "no one was wearing a black hat", () => GamePlayHelpers.Exists("Hat2")),
-            new Rule("there are an even amount of tricksters", "the amount of visitors was uneven", () => GamePlayHelpers.CountIsEven("Trickster")),
-            new Rule("there are an uneven amount of pumpkins", "the amount of pumpkins was even", () => !GamePlayHelpers.CountIsEven("Pumpkin1")),
+            //new Rule("no one is wearing a purple hat", "someone was wearing a purple hat", () => !GamePlayHelpers.Exists("Hat1")),
+            //new Rule("someone is wearing a black hat", "no one was wearing a black hat", () => GamePlayHelpers.Exists("Hat2")),
+            //new Rule("there are an even amount of tricksters", "the amount of visitors was uneven", () => GamePlayHelpers.CountIsEven("Trickster")),
+            //new Rule("there are an uneven amount of pumpkins", "the amount of pumpkins was even", () => !GamePlayHelpers.CountIsEven("Pumpkin1")),
+            new Rule("canle 3 or more :)", "nuh uh", () => GamePlayHelpers.Count("candle")> 2),
         };
 
     }
