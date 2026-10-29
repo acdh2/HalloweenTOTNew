@@ -32,6 +32,11 @@ public class GamePlayHelpers : MonoBehaviour
         return FindRecursive(root, name);
     }
 
+    public static int GetLastAudioId(string tag)
+    {
+        return AudioManager.GetLastPlayedId(tag);
+    }
+
     public static bool IsVisible(string name) 
     {
         Transform obj = Find(name);
@@ -79,6 +84,38 @@ public class GamePlayHelpers : MonoBehaviour
         {
             CountRecursive(child, name, ref count);
         }
+    }
+
+    // True if a visible renderer under root uses this mesh together with this
+    // material. Works for both MeshRenderers and SkinnedMeshRenderers.
+    public static bool HasMeshWithMaterial(string meshName, string materialName)
+    {
+        if (root == null) return false;
+
+        foreach (Renderer rend in root.GetComponentsInChildren<Renderer>())
+        {
+            if (!rend.enabled) continue;
+
+            Mesh mesh = null;
+            if (rend is SkinnedMeshRenderer skinned) mesh = skinned.sharedMesh;
+            else if (rend.TryGetComponent(out MeshFilter filter)) mesh = filter.sharedMesh;
+            if (mesh == null || StripInstanceSuffix(mesh.name) != meshName) continue;
+
+            foreach (Material material in rend.sharedMaterials)
+            {
+                if (material != null && StripInstanceSuffix(material.name) == materialName) return true;
+            }
+        }
+        return false;
+    }
+
+    // Unity adds " (Instance)" to materials and " Instance" to meshes that
+    // were copied at runtime, for example via renderer.material.
+    private static string StripInstanceSuffix(string name)
+    {
+        if (name.EndsWith(" (Instance)")) return name.Substring(0, name.Length - " (Instance)".Length);
+        if (name.EndsWith(" Instance")) return name.Substring(0, name.Length - " Instance".Length);
+        return name;
     }
 
     public static void MakeVisible(Transform obj, bool visible)

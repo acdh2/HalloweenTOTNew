@@ -30,6 +30,8 @@ public class CameraZoom : MonoBehaviour
     [Header("Timing")]
     public float tweenDuration = 1.0f;
     public float dwellTime = 3.0f;
+    [Tooltip("Seconds after the killer view appears before the hit lands.")]
+    public float killerHitDelay = 0.5f;
 
     [Header("Pan Settings")]
     public float panAngle = 15f;
@@ -94,7 +96,8 @@ public class CameraZoom : MonoBehaviour
         yield return MoveCameraRoutine(targetPos, baseTargetRot, startPoint.position, startPoint.rotation);
     }
 
-    public IEnumerator GoToDoorAndOpen()
+    // waitAfterOpen: how long to look at the opened door before continuing.
+    public IEnumerator GoToDoorAndOpen(float waitAfterOpen)
     {
         yield return MoveCameraRoutine(startPoint.position, startPoint.rotation, doorTarget.position, doorTarget.rotation);
 
@@ -104,7 +107,7 @@ public class CameraZoom : MonoBehaviour
         }
         AudioManager.PlaySound("DoorOpen");
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(waitAfterOpen);
     }
 
     public IEnumerator KillerSequence()
@@ -116,7 +119,7 @@ public class CameraZoom : MonoBehaviour
             transform.rotation = randomHead.rotation;
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(killerHitDelay);
 
         yield return HitEffect();
     }

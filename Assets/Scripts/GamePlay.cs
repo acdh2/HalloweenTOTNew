@@ -40,6 +40,10 @@ public class GamePlay : GamePlayBase
     public float footstepsLead = 1.5f;
     [Tooltip("Remaining decision time at which TimeRunningOut plays.")]
     public float timeRunningOutAt = 2f;
+    [Tooltip("Seconds between opening the door and the jumpscare.")]
+    public float jumpScareDelay = 0.1f;
+    [Tooltip("Seconds you look at safe visitors after opening the door.")]
+    public float safeDoorDwell = 2f;
 
     Phase phase = Phase.Waiting;
     bool doorRequested = false;
@@ -55,11 +59,11 @@ public class GamePlay : GamePlayBase
     void Awake()
     {
         RuleSet.all = new List<Rule> {
-            //new Rule("no one is wearing a purple hat", "someone was wearing a purple hat", () => !GamePlayHelpers.Exists("Hat1")),
-            //new Rule("someone is wearing a black hat", "no one was wearing a black hat", () => GamePlayHelpers.Exists("Hat2")),
-            //new Rule("there are an even amount of tricksters", "the amount of visitors was uneven", () => GamePlayHelpers.CountIsEven("Trickster")),
-            //new Rule("there are an uneven amount of pumpkins", "the amount of pumpkins was even", () => !GamePlayHelpers.CountIsEven("Pumpkin1")),
-            new Rule("canle 3 or more :)", "nuh uh", () => GamePlayHelpers.Count("candle")> 2),
+            //new Rule("someone is wearing a purple hat", "someone was wearing a purple hat", () => GamePlayHelpers.Exists("Hat1")),
+            //new Rule("no one is wearing a black hat", "no one was wearing a black hat", () => !GamePlayHelpers.Exists("Hat2")),
+            //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
+            //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
+            new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3),
         };
 
     }
@@ -175,7 +179,7 @@ public class GamePlay : GamePlayBase
                 else if (canAdd) {
                     string rule = ruleset.AddRule(out int number);
                     AudioManager.PlaySound("NewRule");
-                    yield return ShowMessage($"Rule #{number}: |Only open the door if\n{rule}", false, ruleMessageDuration);
+                    yield return ShowMessage($"Rule #{number}: |Don't open the door if\n{rule}", false, ruleMessageDuration);
                 }
             }
 
@@ -260,13 +264,13 @@ public class GamePlay : GamePlayBase
     // open up. Either way you lose a life.
     IEnumerator Resolve(RuleSet ruleset, GameObject visitors)
     {
-        List<string> brokenRules = ruleset.FailedRules();
+        List<string> brokenRules = ruleset.BrokenRules();
         bool safe = brokenRules.Count == 0;
 
         if (openedDoor) {
-            yield return cameraZoom.GoToDoorAndOpen();
-
             bool killed = !safe;
+            yield return cameraZoom.GoToDoorAndOpen(killed ? jumpScareDelay : safeDoorDwell);
+
             if (killed) {
                 AudioManager.PlaySound("JumpScare");
                 yield return cameraZoom.KillerSequence();

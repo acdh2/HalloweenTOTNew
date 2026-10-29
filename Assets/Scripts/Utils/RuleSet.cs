@@ -4,9 +4,11 @@ using System.Diagnostics;
 
 public class Rule
 {
+    // When you shouldn't open the door: "Don't open the door if <Description>".
     public string Description;
     // What went wrong when the rule is broken, used as feedback.
     public string Feedback;
+    // True when the visitors are dangerous according to this rule.
     public Func<bool> Condition;
 
     public Rule(string description, string feedback, Func<bool> condition)
@@ -83,13 +85,14 @@ public class RuleSet
         }
     }
 
-    public List<string> FailedRules()
+    // Active rules whose condition is true, meaning you shouldn't have opened the door.
+    public List<string> BrokenRules()
     {
-        List<string> failed = new List<string>();
+        List<string> broken = new List<string>();
         foreach (var rule in _rules)
         {
-            if (!_inactive.Contains(rule) && !rule.Test()) failed.Add(rule.Feedback);
+            if (!_inactive.Contains(rule) && rule.Test()) broken.Add(rule.Feedback);
         }
-        return failed;
+        return broken;
     }
 }

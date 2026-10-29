@@ -17,6 +17,7 @@ public class AudioManager : MonoBehaviour
     private AudioSource audioSource;
     public List<AudioEvent> audioEvents = new();
     private Dictionary<string, AudioClip[]> audioDictionary = new();
+    private Dictionary<string, int> lastPlayedIndex = new();
 
     void Awake()
     {
@@ -50,10 +51,24 @@ public class AudioManager : MonoBehaviour
         {
             int randomIndex = UnityEngine.Random.Range(0, clips.Length);
             instance.audioSource.PlayOneShot(clips[randomIndex]);
+            instance.lastPlayedIndex[soundName] = randomIndex;
         }
         else
         {
             Debug.LogWarning($"AudioEvent with name '{soundName}' does not exist or contains no clips.");
         }
+    }
+
+    // Returns the index of the clip that was last played for this sound,
+    // or -1 if it hasn't been played yet.
+    public static int GetLastPlayedId(string soundName)
+    {
+        if (instance == null)
+        {
+            Debug.LogWarning("No AudioManager present in the scene.");
+            return -1;
+        }
+
+        return instance.lastPlayedIndex.TryGetValue(soundName, out int index) ? index : -1;
     }
 }
