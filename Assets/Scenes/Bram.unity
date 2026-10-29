@@ -1570,6 +1570,9 @@ MonoBehaviour:
   - name: Footsteps
     audioClips:
     - {fileID: 8300000, guid: 96740e47fcb1d4af587be019204647d8, type: 3}
+  - name: TurnLightOff
+    audioClips:
+    - {fileID: 8300000, guid: 96740e47fcb1d4af587be019204647d8, type: 3}
 --- !u!1 &913066663
 GameObject:
   m_ObjectHideFlags: 0
