@@ -427,13 +427,14 @@ GameObject:
   - component: {fileID: 2389247832617122166}
   - component: {fileID: 7321615279703898892}
   - component: {fileID: 5411276750853816276}
+  - component: {fileID: 2757161805206963884}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2389247832617122166
 Transform:
   m_ObjectHideFlags: 0
@@ -460,7 +461,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -543,6 +544,18 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &2757161805206963884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6553027140924402136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b264906756476044820d27806f60b78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightChanger
 --- !u!1 &7441813514696588932
 GameObject:
   m_ObjectHideFlags: 0

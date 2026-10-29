@@ -160,4 +160,17 @@ public class GamePlayHelpers : MonoBehaviour
     {
         return UnityEngine.Random.value > 0.5f;
     }
+
+    public static Color GetColor(string name)
+    {
+        Transform obj = Find(name);
+        if (obj == null) return Color.white;
+
+        if (obj.TryGetComponent(out Light light))
+        {
+            return light.color;
+        }
+
+        return Color.white;
+    }
 }
