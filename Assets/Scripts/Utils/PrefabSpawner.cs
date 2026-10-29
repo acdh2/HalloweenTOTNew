@@ -5,7 +5,7 @@ public class PrefabSpawner : MonoBehaviour
     [Header("Prefabs")]
     public GameObject[] prefabsToSpawn;
 
-    [Header("Aantal")]
+    [Header("Count")]
     public int minCount = 3;
     public int maxCount = 7;
 
@@ -31,7 +31,8 @@ public class PrefabSpawner : MonoBehaviour
             
             Vector3 spawnPosition = transform.position + new Vector3(startX + (i * spacing), 0f, 0f);
             
-            Instantiate(randomPrefab, spawnPosition, transform.rotation, transform);
+            GameObject spawned = Instantiate(randomPrefab, spawnPosition, transform.rotation, transform);
+            spawned.name = randomPrefab.name;
         }
     }
 }

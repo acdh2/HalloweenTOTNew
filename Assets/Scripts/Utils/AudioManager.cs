@@ -42,7 +42,7 @@ public class AudioManager : MonoBehaviour
     {
         if (instance == null)
         {
-            Debug.LogWarning("Geen AudioManager aanwezig in de scène.");
+            Debug.LogWarning("No AudioManager present in the scene.");
             return;
         }
 
@@ -53,7 +53,7 @@ public class AudioManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"AudioEvent met naam '{soundName}' bestaat niet of bevat geen clips.");
+            Debug.LogWarning($"AudioEvent with name '{soundName}' does not exist or contains no clips.");
         }
     }
 }

@@ -7,48 +7,104 @@ public enum Phase { Waiting, NewRule, HordeArrives, Decide, Resolve, GameOver }
 public class GamePlay : GamePlayBase
 {
     public GameObject visitorsPrefab;
+    public GameObject gardenPrefab;
 
-    [Tooltip("Willekeurige wachttijd tussen rondes, minimum en maximum in seconden.")]
+    [Tooltip("Random wait time between rounds, minimum and maximum in seconds.")]
     public float minWaitTime = 2f;
     public float maxWaitTime = 5f;
-    [Tooltip("Minimale wachttijd na een verloren leven.")]
+    [Tooltip("Minimum wait time after losing a life.")]
     public float waitAfterDeath = 5f;
     public float decideTime = 7f;
-    public int roundsPerNewRule = 1;
-    [Tooltip("Seconden na het kijken voordat je opnieuw door het raam kunt kijken.")]
+    public int roundsPerNewRule = 3;
+    [Tooltip("Chance that a rule change removes a rule instead of adding one.")]
+    [Range(0f, 1f)]
+    public float removeRuleChance = 0.5f;
+    [Tooltip("Chance that a rule change turns an old rule on again instead of adding a new one.")]
+    [Range(0f, 1f)]
+    public float reactivateRuleChance = 0.5f;
+    [Tooltip("Seconds a rule change message stays on screen.")]
+    public float ruleMessageDuration = 5f;
+    [Tooltip("Seconds after peeking before you can look through the window again.")]
     public float windowCooldown = 1.5f;
-    [Tooltip("Aantal goede keuzes achter elkaar voor een extra leven.")]
+    [Tooltip("Seconds the lights stay off after clicking the light switch.")]
+    public float lightsOffDuration = 1.5f;
+    [Tooltip("Seconds after the lights are back on before the switch works again.")]
+    public float lightSwitchCooldown = 5f;
+    [Tooltip("Number of correct choices in a row for an extra life.")]
     public int streakForExtraLife = 4;
     public int maxLives = 3;
-    [Tooltip("Willekeurige tijd tussen het kloppen terwijl de horde voor de deur staat.")]
+    [Tooltip("Random time between knocks while the horde is at the door.")]
     public float knockMinInterval = 1.5f;
     public float knockMaxInterval = 4f;
-    [Tooltip("Seconden voetstappen voordat de horde verschijnt.")]
+    [Tooltip("Seconds of footsteps before the horde appears.")]
     public float footstepsLead = 1.5f;
-    [Tooltip("Resterende beslistijd waarop TimeRunningOut afgaat.")]
+    [Tooltip("Remaining decision time at which TimeRunningOut plays.")]
     public float timeRunningOutAt = 2f;
 
     Phase phase = Phase.Waiting;
     bool doorRequested = false;
+    // Turning off the lights sends the horde away: the decision ends as if
+    // the door stayed closed.
+    bool hordeSentAway = false;
     bool openedDoor = false;
     bool isPeeking = false;
     float windowReadyTime = 0f;
+    bool lightsOff = false;
+    float lightSwitchReadyTime = 0f;
 
     void Awake()
     {
         RuleSet.all = new List<Rule> {
-            new Rule("Box1 is left", () => GamePlayHelpers.GetX("Box1") < 0.0f),
-            new Rule("Box2 is left", () => GamePlayHelpers.GetX("Box2") < 0.0f),
-            new Rule("Box3 is left", () => GamePlayHelpers.GetX("Box3") < 0.0f),
-            new Rule("Box1 is visible", () => GamePlayHelpers.IsVisible("Box1")),
-            new Rule("Box2 is visible", () => GamePlayHelpers.IsVisible("Box2")),
-            new Rule("Box3 is visible", () => GamePlayHelpers.IsVisible("Box3")),
+            new Rule("no one is wearing a purple hat", "someone was wearing a purple hat", () => !GamePlayHelpers.Exists("Hat1")),
+            new Rule("someone is wearing a black hat", "no one was wearing a black hat", () => GamePlayHelpers.Exists("Hat2")),
+            new Rule("there are an even amount of tricksters", "the amount of visitors was uneven", () => GamePlayHelpers.CountIsEven("Trickster")),
+            new Rule("there are an uneven amount of pumpkins", "the amount of pumpkins was even", () => !GamePlayHelpers.CountIsEven("Pumpkin1")),
         };
 
     }
 
-    // Gekoppeld aan de ClickEventTriggers van deur en raam. De huidige fase
-    // bepaalt of een klik iets doet.
+    public void OnLightSwitchClicked()
+    {
+        if (lightsOff || Time.time < lightSwitchReadyTime) return;
+        AudioManager.PlaySound("TurnLightOff");
+        if (phase == Phase.Decide && !isPeeking) hordeSentAway = true;
+        StartCoroutine(LightsOut());
+    }
+
+    // Turns off the ambient light and all lights in the game for a moment.
+    // Only the lights that were on are turned on again afterwards.
+    IEnumerator LightsOut()
+    {
+        lightsOff = true;
+        UnityEngine.Rendering.AmbientMode oldAmbientMode = RenderSettings.ambientMode;
+        Color oldAmbientLight = RenderSettings.ambientLight;
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = Color.black;
+
+        List<Light> turnedOff = new List<Light>();
+        foreach (Light light in GamePlayHelpers.root.GetComponentsInChildren<Light>())
+        {
+            if (!light.enabled) continue;
+            light.enabled = false;
+            turnedOff.Add(light);
+        }
+
+        yield return new WaitForSeconds(lightsOffDuration);
+
+        RenderSettings.ambientMode = oldAmbientMode;
+        RenderSettings.ambientLight = oldAmbientLight;
+        foreach (Light light in turnedOff)
+        {
+            // The garden or visitors may have been destroyed in the meantime.
+            if (light != null) light.enabled = true;
+        }
+
+        lightSwitchReadyTime = Time.time + lightSwitchCooldown;
+        lightsOff = false;
+    }
+
+    // Hooked up to the ClickEventTriggers of the door and window. The current
+    // phase determines whether a click does anything.
     public void OnDoorClicked()
     {
         if (phase == Phase.Decide && !isPeeking) doorRequested = true;
@@ -62,8 +118,8 @@ public class GamePlay : GamePlayBase
         StartCoroutine(Peek());
     }
 
-    // Het kijken loopt naast de game loop. De fases wachten met de overgang
-    // tot isPeeking weer false is, zodat er niets verschijnt tijdens het kijken.
+    // Peeking runs alongside the game loop. The phases hold off on transitioning
+    // until isPeeking is false again, so nothing appears while peeking.
     IEnumerator Peek()
     {
         isPeeking = true;
@@ -77,11 +133,16 @@ public class GamePlay : GamePlayBase
     {
         RuleSet ruleset = new RuleSet();
 
+        GameObject garden = GamePlayHelpers.Find("Garden").gameObject;
         int round = 0;
         bool lostLife = false;
         int goodStreak = 0;
         while (gameIsRunning && lives > 0) {
             round++;
+            yield return new WaitWhile(() => isPeeking);
+            if (garden != null) Destroy(garden);
+            garden = Instantiate(gardenPrefab, GamePlayHelpers.root, true);
+            garden.name = gardenPrefab.name;
 
             phase = Phase.Waiting;
             float waitTime = Random.Range(minWaitTime, maxWaitTime);
@@ -91,17 +152,38 @@ public class GamePlay : GamePlayBase
 
             phase = Phase.NewRule;
             if (ruleset.Count == 0 || round % roundsPerNewRule == 0) {
-                string rule = ruleset.AddRule();
-                if (rule != "") {
+                // Removing is only possible if at least one rule remains.
+                // Adding is either a new rule or turning an old one on again.
+                bool canRemove = ruleset.Count > 1;
+                bool canAddNew = ruleset.CanAddRule;
+                bool canReactivate = ruleset.InactiveCount > 0;
+                bool canAdd = canAddNew || canReactivate;
+                bool remove = canRemove && (!canAdd || Random.value < removeRuleChance);
+                bool reactivate = canReactivate && (!canAddNew || Random.value < reactivateRuleChance);
+
+                if (remove) {
+                    string rule = ruleset.DeactivateRule(out int number);
                     AudioManager.PlaySound("NewRule");
-                    yield return ShowMessage($"New Rule: {rule}");
+                    yield return ShowMessage($"Rule #{number} removed: You no longer have to check if\n{rule}", false, ruleMessageDuration);
+                }
+                else if (reactivate) {
+                    string rule = ruleset.ActivateRule(out int number);
+                    AudioManager.PlaySound("NewRule");
+                    yield return ShowMessage($"Rule #{number} is again in action: |Check if\n{rule}", false, ruleMessageDuration);
+                }
+                else if (canAdd) {
+                    string rule = ruleset.AddRule(out int number);
+                    AudioManager.PlaySound("NewRule");
+                    yield return ShowMessage($"Rule #{number}: |Only open the door if\n{rule}", false, ruleMessageDuration);
                 }
             }
 
             phase = Phase.HordeArrives;
             AudioManager.PlaySound("Footsteps");
             yield return new WaitForSeconds(footstepsLead);
-            GameObject visitors = Instantiate(visitorsPrefab);
+            // Parent under the Scene root, otherwise the rules can't find the visitors.
+            GameObject visitors = Instantiate(visitorsPrefab, GamePlayHelpers.root, true);
+            visitors.name = visitorsPrefab.name;
             AudioManager.PlaySound("VisitorsArrive");
 
             phase = Phase.Decide;
@@ -112,7 +194,8 @@ public class GamePlay : GamePlayBase
             yield return Resolve(ruleset);
             lostLife = lives < livesBefore;
 
-            Destroy(visitors);
+            // After the last life the visitors stay, so the killer remains in view.
+            if (lives > 0) Destroy(visitors);
 
             goodStreak = lostLife ? 0 : goodStreak + 1;
             if (goodStreak >= streakForExtraLife) {
@@ -125,7 +208,7 @@ public class GamePlay : GamePlayBase
             }
         }
 
-        // De ronde waarin je je laatste leven verloor telt niet als overleefd.
+        // The round in which you lost your last life doesn't count as survived.
         int roundsSurvived = round - 1;
 
         phase = Phase.GameOver;
@@ -133,11 +216,13 @@ public class GamePlay : GamePlayBase
         yield return ShowMessage($"Game Over\nYou survived {roundsSurvived} {(roundsSurvived == 1 ? "round" : "rounds")}", true);
     }
 
-    // Wacht tot de speler de deur opent of de tijd op is. Door het raam kijken
-    // pauzeert de beslistijd. Ondertussen klopt de horde af en toe aan.
+    // Waits until the player opens the door, turns off the lights or time runs out.
+    // Peeking through the window pauses the decision time. Meanwhile the horde
+    // knocks now and then.
     IEnumerator Decide()
     {
         doorRequested = false;
+        hordeSentAway = false;
         openedDoor = false;
 
         float elapsed = 0f;
@@ -149,6 +234,7 @@ public class GamePlay : GamePlayBase
                 openedDoor = true;
                 yield break;
             }
+            if (hordeSentAway) yield break;
 
             yield return null;
             if (!isPeeking) elapsed += Time.deltaTime;
@@ -169,18 +255,20 @@ public class GamePlay : GamePlayBase
         yield return new WaitWhile(() => isPeeking);
     }
 
-    // Deur open + onveilig: dood. Deur dicht + veilig: je hebt ten onrechte
-    // niet opengedaan. In beide gevallen gaat er een leven af.
+    // Door open + unsafe: death. Door closed + safe: you wrongly didn't
+    // open up. Either way you lose a life.
     IEnumerator Resolve(RuleSet ruleset)
     {
+        List<string> brokenRules = ruleset.FailedRules();
+        bool safe = brokenRules.Count == 0;
+
         if (openedDoor) {
             yield return cameraZoom.GoToDoorAndOpen();
 
-            bool killed = !ruleset.TestAll();
+            bool killed = !safe;
             if (killed) {
                 AudioManager.PlaySound("JumpScare");
                 yield return cameraZoom.KillerSequence();
-                lives--;
             }
             else {
                 AudioManager.PlaySound("TrickOrTreat");
@@ -188,20 +276,31 @@ public class GamePlay : GamePlayBase
 
             yield return new WaitForSeconds(1f);
 
-            if (killed) AudioManager.PlaySound("Death");
-            else AudioManager.PlaySound("DoorClose");
+            if (killed) {
+                AudioManager.PlaySound("Death");
+                // The killer stays in view: first the reason, then the heart goes out.
+                yield return ShowMessage($"You broke the {(brokenRules.Count == 1 ? "rule" : "rules")}:\n{string.Join("\n", brokenRules)}");
+                yield return LoseLife();
+            }
+            else {
+                AudioManager.PlaySound("DoorClose");
+            }
 
-            cameraZoom.CloseDoor();
-            cameraZoom.ResetToStart();
+            // When dead, the camera stays on the killer for the game over.
+            if (lives > 0) {
+                cameraZoom.CloseDoor();
+                cameraZoom.ResetToStart();
+            }
         }
         else {
-            if (cameraZoom.TestFromDoorView(ruleset)) {
-                lives--;
+            if (safe) {
                 AudioManager.PlaySound("VisitorsDisappointed");
                 yield return ShowMessage("It was safe... you should have opened the door!");
+                yield return LoseLife();
             }
             else {
                 AudioManager.PlaySound("ImpostorsLeave");
+                yield return ShowMessage("You didn't open the door. Smart choice.\nYou are safe...| for now");
             }
         }
     }

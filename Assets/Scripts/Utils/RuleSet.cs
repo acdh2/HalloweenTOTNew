@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 public class Rule
 {
     public string Description;
+    // What went wrong when the rule is broken, used as feedback.
+    public string Feedback;
     public Func<bool> Condition;
 
-    public Rule(string description, Func<bool> condition)
+    public Rule(string description, string feedback, Func<bool> condition)
     {
         Description = description;
+        Feedback = feedback;
         Condition = condition;
     }
 
@@ -22,46 +26,70 @@ public class RuleSet
 
     };
 
-    private readonly List<Rule> _activeRules = new List<Rule>();
+    // Every rule that has been in play, in the order it was introduced: rule #n
+    // is at index n - 1. Turned off rules stay in here, so their number never
+    // changes and a new rule always gets a higher number.
+    private readonly List<Rule> _rules = new List<Rule>();
+    private readonly HashSet<Rule> _inactive = new HashSet<Rule>();
 
-    public string AddRule()
+    // Number of active rules.
+    public int Count => _rules.Count - _inactive.Count;
+    public int InactiveCount => _inactive.Count;
+    // Whether there is a rule in all that hasn't been in play yet.
+    public bool CanAddRule => _rules.Count < all.Count;
+
+    // Brings a random rule into play that hasn't been used before.
+    public string AddRule(out int number)
     {
-        List<Rule> available = all.FindAll(r => !_activeRules.Exists(a => a.Description == r.Description));
+        List<Rule> available = all.FindAll(r => !_rules.Contains(r));
+        number = -1;
         if (available.Count == 0) return "";
 
-        int rnd = UnityEngine.Random.Range(0, available.Count);
-        Rule newRule = available[rnd];
-        _activeRules.Add(newRule);
+        Rule newRule = available[UnityEngine.Random.Range(0, available.Count)];
+        _rules.Add(newRule);
+        number = _rules.Count;
         return newRule.Description;
+    }
+
+    // Turns off a random active rule. It keeps its number, ActivateRule can turn it on again.
+    public string DeactivateRule(out int number)
+    {
+        return PickAndSwitch(_rules.FindAll(r => !_inactive.Contains(r)), false, out number);
+    }
+
+    // Turns a random turned off rule on again, with its old number.
+    public string ActivateRule(out int number)
+    {
+        return PickAndSwitch(new List<Rule>(_inactive), true, out number);
+    }
+
+    private string PickAndSwitch(List<Rule> candidates, bool activate, out int number)
+    {
+        number = -1;
+        if (candidates.Count == 0) return "";
+
+        Rule rule = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        if (activate) _inactive.Remove(rule);
+        else _inactive.Add(rule);
+        number = _rules.IndexOf(rule) + 1;
+        return rule.Description;
     }
 
     public IEnumerable<string> GetRules()
     {
-        foreach (var rule in _activeRules)
+        foreach (var rule in _rules)
         {
-            yield return rule.Description;
+            if (!_inactive.Contains(rule)) yield return rule.Description;
         }
     }
 
-    public void Randomize()
+    public List<string> FailedRules()
     {
-        for (int i = 0; i < _activeRules.Count; i++)
+        List<string> failed = new List<string>();
+        foreach (var rule in _rules)
         {
-            int rnd = UnityEngine.Random.Range(i, _activeRules.Count);
-            Rule temp = _activeRules[i];
-            _activeRules[i] = _activeRules[rnd];
-            _activeRules[rnd] = temp;
+            if (!_inactive.Contains(rule) && !rule.Test()) failed.Add(rule.Feedback);
         }
+        return failed;
     }
-
-    public bool TestAll()
-    {
-        foreach (var rule in _activeRules)
-        {
-            if (!rule.Test()) return false;
-        }
-        return true;
-    }
-
-    public int Count => _activeRules.Count;
 }

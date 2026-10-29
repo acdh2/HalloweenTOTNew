@@ -13,7 +13,7 @@ public class GamePlayHelpers : MonoBehaviour
         return _root;
     }
 
-    private static Transform root => GetRoot();
+    public static Transform root => GetRoot();
 
     private static Transform FindRecursive(Transform parent, string name)
     {
@@ -35,33 +35,20 @@ public class GamePlayHelpers : MonoBehaviour
     public static bool IsVisible(string name) 
     {
         Transform obj = Find(name);
-        if (obj == null || Camera.main == null) return false;
+        return IsVisible(obj);
+    }
 
-        Renderer rend = obj.GetComponent<Renderer>();
-        if (rend != null && obj.gameObject.activeSelf && rend.enabled)
+    // Visible if the object is active and it or one of its children has an
+    // enabled renderer. We assume everything that matters is in camera view.
+    private static bool IsVisible(Transform obj)
+    {
+        if (obj == null || !obj.gameObject.activeInHierarchy) return false;
+
+        foreach (Renderer rend in obj.GetComponentsInChildren<Renderer>())
         {
-            Vector3 screenPoint = Camera.main.WorldToViewportPoint(obj.position);
-            return screenPoint.z > 0 && screenPoint.x >= 0 && screenPoint.x <= 1 && screenPoint.y >= 0 && screenPoint.y <= 1;
+            if (rend.enabled) return true;
         }
         return false;
-    }
-
-    public static float GetX(string name) 
-    {
-        Transform obj = Find(name);
-        if (obj == null || Camera.main == null) return 0f;
-
-        Vector3 screenPoint = Camera.main.WorldToViewportPoint(obj.position);
-        return (screenPoint.x * 2f) - 1f;
-    }
-
-    public static float GetY(string name) 
-    {
-        Transform obj = Find(name);
-        if (obj == null || Camera.main == null) return 0f;
-
-        Vector3 screenPoint = Camera.main.WorldToViewportPoint(obj.position);
-        return (screenPoint.y * 2f) - 1f;
     }
 
     public static int Count(string name)
@@ -72,9 +59,19 @@ public class GamePlayHelpers : MonoBehaviour
         return count;
     }
 
+    public static bool Exists(string name)
+    {
+        return Count(name) > 0;
+    }
+
+    public static bool CountIsEven(string name)
+    {
+        return Count(name) % 2 == 0;
+    }
+
     private static void CountRecursive(Transform parent, string name, ref int count)
     {
-        if (parent.name == name)
+        if (parent.name == name && IsVisible(parent))
         {
             count++;
         }
@@ -115,5 +112,4 @@ public class GamePlayHelpers : MonoBehaviour
     {
         return UnityEngine.Random.value > 0.5f;
     }
-
 }

@@ -1,2 +1,16 @@
 fileFormatVersion: 2
 guid: c112d15176f3c493faf047aedb5abc98
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - heartTexture: {instanceID: 0}
+  - cameraZoom: {instanceID: 0}
+  - message: {instanceID: 0}
+  - visitorsPrefab: {instanceID: 0}
+  - gardenPrefab: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
