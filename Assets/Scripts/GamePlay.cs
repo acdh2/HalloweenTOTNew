@@ -65,7 +65,7 @@ public class GamePlay : GamePlayBase
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
             new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
             new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
-            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("Knocking") == 1, ""),//scream sound
+            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") == 0, ""),
         };
 
     }

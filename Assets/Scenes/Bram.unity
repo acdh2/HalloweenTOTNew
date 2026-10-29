@@ -840,6 +840,8 @@ MonoBehaviour:
   knockMaxInterval: 4
   footstepsLead: 1.5
   timeRunningOutAt: 2
+  jumpScareDelay: 0.1
+  safeDoorDwell: 2
 --- !u!1 &644346338
 GameObject:
   m_ObjectHideFlags: 0
@@ -1408,7 +1410,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: d9ef5c9acae424e2f87b073ccba2be01, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 0.184
   m_Pitch: 1
   Loop: 1
@@ -1527,7 +1529,7 @@ MonoBehaviour:
   - name: Knocking
     audioClips:
     - {fileID: 8300000, guid: 5ddc695b41fdd41f3a8c29a623f7d655, type: 3}
-    - {fileID: 8300000, guid: 5ddc695b41fdd41f3a8c29a623f7d655, type: 3}
+    - {fileID: 8300000, guid: feac7904b6bfd4b1595d6ccebec5e3b3, type: 3}
   - name: JumpScare
     audioClips:
     - {fileID: 8300000, guid: 102cf5fa9032342e18aad3087484358b, type: 3}
@@ -1992,6 +1994,7 @@ MonoBehaviour:
   shakeFrequency: 25
   tweenDuration: 1
   dwellTime: 2
+  killerHitDelay: 0.5
   panAngle: 5
   zoomCurve:
     serializedVersion: 2
