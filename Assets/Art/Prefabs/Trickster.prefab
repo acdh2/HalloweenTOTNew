@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2216752496758048838}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -33,7 +33,7 @@ Transform:
   - {fileID: 4395873819265483351}
   - {fileID: 4729782794305178384}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &865087387880710764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -91,14 +91,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AssignRandomMaterialToChildren
   bodies:
-  - {fileID: 919132149155446097, guid: 4492fc0cd9880794ea075ba00c3ac1fb, type: 3}
-  - {fileID: 919132149155446097, guid: 64498da8461edb0469799e7fd19f340a, type: 3}
-  - {fileID: 919132149155446097, guid: 0d611857612b09847b3421f1d4eaab11, type: 3}
-  - {fileID: 919132149155446097, guid: 5a0f3c38314d0724c8378ca8a04c4a4b, type: 3}
-  materials:
-  - {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
-  - {fileID: 2100000, guid: 45bb1f6d712eb2f488723dfb4c22fa01, type: 2}
-  - {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
+  - body: {fileID: 919132149155446097, guid: 4492fc0cd9880794ea075ba00c3ac1fb, type: 3}
+    materials:
+    - skin: {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 16e20754de372594ea8f89f5586223d2, type: 2}
+    - skin: {fileID: 2100000, guid: 45bb1f6d712eb2f488723dfb4c22fa01, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 2927c6e6966685b4aad8550f91e2b570, type: 2}
+    - skin: {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 71f1a728a3b04e541b95b8ee979b7636, type: 2}
+  - body: {fileID: 919132149155446097, guid: 64498da8461edb0469799e7fd19f340a, type: 3}
+    materials:
+    - skin: {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 16e20754de372594ea8f89f5586223d2, type: 2}
+    - skin: {fileID: 2100000, guid: 45bb1f6d712eb2f488723dfb4c22fa01, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 2927c6e6966685b4aad8550f91e2b570, type: 2}
+    - skin: {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 71f1a728a3b04e541b95b8ee979b7636, type: 2}
+  - body: {fileID: 919132149155446097, guid: 0d611857612b09847b3421f1d4eaab11, type: 3}
+    materials:
+    - skin: {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 16e20754de372594ea8f89f5586223d2, type: 2}
+    - skin: {fileID: 2100000, guid: e49a108c7cf63a84f9f0544a8945dbdd, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: f27aae9d096633d45ae73a9d06abee7a, type: 2}
+    - skin: {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 71f1a728a3b04e541b95b8ee979b7636, type: 2}
+  - body: {fileID: 919132149155446097, guid: 5a0f3c38314d0724c8378ca8a04c4a4b, type: 3}
+    materials:
+    - skin: {fileID: 2100000, guid: 1d74226381617a54dba25041c14e87ae, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 16e20754de372594ea8f89f5586223d2, type: 2}
+    - skin: {fileID: 2100000, guid: 45bb1f6d712eb2f488723dfb4c22fa01, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 2927c6e6966685b4aad8550f91e2b570, type: 2}
+    - skin: {fileID: 2100000, guid: 4b9b98e575c97734a889ec4856934563, type: 2}
+      jumpscareSkin: {fileID: 2100000, guid: 71f1a728a3b04e541b95b8ee979b7636, type: 2}
 --- !u!1 &7939898843390997373
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,6 +135,7 @@ GameObject:
   - component: {fileID: 4066910217771076643}
   - component: {fileID: 8276289018010817603}
   - component: {fileID: 2109483293557154750}
+  - component: {fileID: 6315966260145078776}
   m_Layer: 0
   m_Name: KillerViewPoint
   m_TagString: Untagged
@@ -126,9 +151,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7939898843390997373}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.06893734, y: -0.014963694, z: -0.0010341364, w: 0.9975082}
-  m_LocalPosition: {x: -0.0016688704, y: 1.076555, z: -0.82045746}
-  m_LocalScale: {x: 0.10000001, y: 0.1, z: 0.1}
+  m_LocalRotation: {x: -0.0010341364, y: 0.9975082, z: 0.06893734, w: 0.014963694}
+  m_LocalPosition: {x: 0.0016688704, y: 1.076555, z: 0.82045746}
+  m_LocalScale: {x: 0.1, y: 0.099999994, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5377730448173750212}
@@ -211,3 +236,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6315966260145078776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7939898843390997373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c00fbff5fef384cb38d86ddadafc8747, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JumpScareFaceTrigger
+  spawnRandomBodyWithMaterial: {fileID: 4057406552549532753}

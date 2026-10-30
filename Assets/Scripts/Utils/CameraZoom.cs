@@ -214,7 +214,10 @@ public class CameraZoom : MonoBehaviour
         if (heads.Count > 0)
         {
             int randomIndex = UnityEngine.Random.Range(0, heads.Count);
-            return heads[randomIndex];
+            Transform head = heads[randomIndex];
+            JumpScareFaceTrigger jumpScareFaceTrigger = head.gameObject.GetComponent<JumpScareFaceTrigger>();
+            jumpScareFaceTrigger?.SwitchToJumpscareFace();
+            return head;
         }
 
         return null;

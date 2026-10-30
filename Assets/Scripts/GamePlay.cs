@@ -55,11 +55,12 @@ public class GamePlay : GamePlayBase
     float windowReadyTime = 0f;
     bool lightsOff = false;
     float lightSwitchReadyTime = 0f;
-    int randomNumber;
-
 
     void Awake()
     {
+        int randomNumber = Random.Range(1, 5);
+        string randomNumberName = GetNumberWord(randomNumber);
+
         RuleSet.all = new List<Rule> {
             //new Rule("someone is wearing a purple hat", "someone was wearing a purple hat", () => GamePlayHelpers.Exists("Hat1")),
             //new Rule("no one is wearing a black hat", "no one was wearing a black hat", () => !GamePlayHelpers.Exists("Hat2")),
@@ -73,6 +74,16 @@ public class GamePlay : GamePlayBase
         };
 
     }
+
+    private readonly string[] numberWords = { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten" };
+    public string GetNumberWord(int number)
+    {
+        if (number >= 0 && number < numberWords.Length)
+            return numberWords[number];
+        
+        return number.ToString(); // Fallback als het getal buiten de array valt
+    }    
+
 
     public void OnLightSwitchClicked()
     {
@@ -227,6 +238,8 @@ public class GamePlay : GamePlayBase
         phase = Phase.GameOver;
         AudioManager.PlaySound("GameOver");
         yield return ShowMessage($"Game Over\nYou survived {roundsSurvived} {(roundsSurvived == 1 ? "round" : "rounds")}", true);
+        yield return new WaitForSeconds(8);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("StartMenu");
     }
 
     // Waits until the player opens the door, turns off the lights or time runs out.
