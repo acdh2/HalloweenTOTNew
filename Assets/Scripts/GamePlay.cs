@@ -33,9 +33,12 @@ public class GamePlay : GamePlayBase
     [Tooltip("Number of correct choices in a row for an extra life.")]
     public int streakForExtraLife = 4;
     public int maxLives = 3;
-    [Tooltip("Random time between knocks while the horde is at the door.")]
+    [Tooltip("Random time between knocks during the first half of the decision time.")]
     public float knockMinInterval = 1.5f;
     public float knockMaxInterval = 4f;
+    [Tooltip("Random time between urgent knocks during the second half of the decision time.")]
+    public float urgentKnockMinInterval = 0.5f;
+    public float urgentKnockMaxInterval = 1.5f;
     [Tooltip("Seconds of footsteps before the horde appears.")]
     public float footstepsLead = 1.5f;
     [Tooltip("Remaining decision time at which TimeRunningOut plays.")]
@@ -44,6 +47,12 @@ public class GamePlay : GamePlayBase
     public float jumpScareDelay = 0.1f;
     [Tooltip("Seconds you look at safe visitors after opening the door.")]
     public float safeDoorDwell = 2f;
+    [Tooltip("World space offset by which impostors move into the room when they break in.")]
+    public Vector3 breakInOffset = new Vector3(0f, 0f, -4f);
+    [Tooltip("Seconds between breaking the door and the impostors walking in.")]
+    public float breakInDelay = 0.5f;
+    [Tooltip("Seconds the impostors take to walk into the room.")]
+    public float breakInMoveTime = 0.6f;
 
     Phase phase = Phase.Waiting;
     bool doorRequested = false;
@@ -243,7 +252,7 @@ public class GamePlay : GamePlayBase
 
     // Waits until the player opens the door, turns off the lights or time runs out.
     // Peeking through the window pauses the decision time. Meanwhile the horde
-    // knocks now and then.
+    // knocks now and then: calmly in the first half, urgently in the second.
     IEnumerator Decide()
     {
         doorRequested = false;
@@ -254,6 +263,7 @@ public class GamePlay : GamePlayBase
         float knockTimer = 0f;
         float nextKnock = Random.Range(knockMinInterval, knockMaxInterval);
         bool warnedTimeRunningOut = false;
+        bool urgent = false;
         while (elapsed < decideTime) {
             if (doorRequested) {
                 openedDoor = true;
@@ -269,25 +279,57 @@ public class GamePlay : GamePlayBase
                 warnedTimeRunningOut = true;
             }
 
+            // Switching to urgent knocking knocks right away.
             knockTimer += Time.deltaTime;
+            if (!urgent && elapsed >= decideTime / 2f) {
+                urgent = true;
+                knockTimer = nextKnock;
+            }
             if (knockTimer >= nextKnock) {
-                AudioManager.PlaySound("Knocking");
+                AudioManager.PlaySound(urgent ? "UrgentKnocking" : "Knocking");
                 knockTimer = 0f;
-                nextKnock = Random.Range(knockMinInterval, knockMaxInterval);
+                nextKnock = urgent
+                    ? Random.Range(urgentKnockMinInterval, urgentKnockMaxInterval)
+                    : Random.Range(knockMinInterval, knockMaxInterval);
             }
         }
 
         yield return new WaitWhile(() => isPeeking);
     }
 
-    // Door open + unsafe: death. Door closed + safe: you wrongly didn't
-    // open up. Either way you lose a life.
+    // Safe visitors want the door opened, impostors want the lights turned off.
+    // Door open + unsafe: death. Lights off + safe: you wrongly sent them away.
+    // No choice + safe: they leave disappointed. No choice + unsafe: they break
+    // in and kill you. Every wrong choice costs a life.
     IEnumerator Resolve(RuleSet ruleset, GameObject visitors)
     {
         List<string> brokenRules = ruleset.BrokenRules();
         bool safe = brokenRules.Count == 0;
+        bool noChoice = !openedDoor && !hordeSentAway;
 
-        if (openedDoor) {
+        if (noChoice && !safe) {
+            yield return BreakIn(visitors);
+            AudioManager.PlaySound("JumpScare");
+            yield return cameraZoom.KillerSequence();
+
+            yield return new WaitForSeconds(1f);
+
+            AudioManager.PlaySound("Death");
+            yield return ShowMessage($"They broke in! You should have turned off the light.\nYou broke the {(brokenRules.Count == 1 ? "rule" : "rules")}:\n{string.Join("\n", brokenRules)}");
+            yield return LoseLife();
+
+            // When dead, the camera stays on the killer for the game over.
+            if (lives > 0) {
+                cameraZoom.CloseDoor();
+                cameraZoom.ResetToStart();
+            }
+        }
+        else if (noChoice) {
+            AudioManager.PlaySound("VisitorsDisappointed");
+            yield return ShowMessage("They waited for nothing and left disappointed...\nYou should have opened the door!");
+            yield return LoseLife();
+        }
+        else if (openedDoor) {
             bool killed = !safe;
             yield return cameraZoom.GoToDoorAndOpen(killed ? jumpScareDelay : safeDoorDwell);
 
@@ -333,9 +375,26 @@ public class GamePlay : GamePlayBase
                 yield return LoseLife();
             }
             else {
-                yield return ShowMessage("You didn't open the door. Smart choice.\nYou are safe...| for now");
+                yield return ShowMessage("You turned off the light. Smart choice.\nYou are safe...| for now");
             }
         }
+    }
+
+    // The impostors break the door open and walk into the room.
+    IEnumerator BreakIn(GameObject visitors)
+    {
+        cameraZoom.BreakDoor();
+        yield return new WaitForSeconds(breakInDelay);
+
+        Vector3 from = visitors.transform.position;
+        Vector3 to = from + breakInOffset;
+        float elapsed = 0f;
+        while (elapsed < breakInMoveTime) {
+            elapsed += Time.deltaTime;
+            visitors.transform.position = to;//Vector3.Lerp(from, to, elapsed / breakInMoveTime);
+            yield return null;
+        }
+        visitors.transform.position = to;
     }
 
 }

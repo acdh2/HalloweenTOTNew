@@ -178,6 +178,15 @@ public class CameraZoom : MonoBehaviour
         return texture;
     }
 
+    public void BreakDoor()
+    {
+        if (doorAnimator != null)
+        {
+            doorAnimator.SetTrigger("BreakDoor");
+        }
+        AudioManager.PlaySound("DoorBreak");
+    }
+
     public void CloseDoor()
     {
         if (doorAnimator != null)
