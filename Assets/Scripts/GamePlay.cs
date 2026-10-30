@@ -59,7 +59,6 @@ public class GamePlay : GamePlayBase
     void Awake()
     {
         int randomNumber = Random.Range(1, 5);
-        string randomNumberName = GetNumberWord(randomNumber);
 
         RuleSet.all = new List<Rule> {
             //new Rule("someone is wearing a purple hat", "someone was wearing a purple hat", () => GamePlayHelpers.Exists("Hat1")),
@@ -67,7 +66,7 @@ public class GamePlay : GamePlayBase
             //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
             //new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
-            new Rule("there are less than " + randomNumber + " candles", "there were less than " + randomNumber + " candles", () => GamePlayHelpers.Count("Candle") < randomNumber),
+            new Rule($"there are less than {randomNumber} candles", $"there were less than {randomNumber} candles", () => GamePlayHelpers.Count("Candle") < randomNumber),
             new Rule("the porch light is red", "the porch light was red",() => GamePlayHelpers.GetColor("Point Light") == Color.red, "Point Light"),
             new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
             new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") == 0, ""),
