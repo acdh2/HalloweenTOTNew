@@ -24,7 +24,9 @@ public class ClickEventTrigger : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
         
-        isHovered = Physics.Raycast(ray, out hit, maxInteractionDistance)
+        // The rule bar at the bottom of the screen lies on top of the scene.
+        isHovered = !RuleBrowser.PointerOverBar
+            && Physics.Raycast(ray, out hit, maxInteractionDistance)
             && hit.transform == transform
             && hit.distance >= minInteractionDistance;
 

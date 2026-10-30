@@ -14,7 +14,7 @@ public class Rule
     // They can be turned off in the editor, so they only show up with the rule.
     public string ActivateObjects;
 
-    public Rule(string description, string feedback, Func<bool> condition, string activateObjects = null)
+    public Rule(string description, string feedback, Func<bool> condition, string activateObjects)
     {
         Description = description;
         Feedback = feedback;
@@ -98,6 +98,17 @@ public class RuleSet
         {
             if (!_inactive.Contains(rule)) yield return rule.Description;
         }
+    }
+
+    // Active rules with their number, in the order they were introduced.
+    public List<(int number, string description)> GetNumberedRules()
+    {
+        List<(int, string)> numbered = new List<(int, string)>();
+        for (int i = 0; i < _rules.Count; i++)
+        {
+            if (!_inactive.Contains(_rules[i])) numbered.Add((i + 1, _rules[i].Description));
+        }
+        return numbered;
     }
 
     // Active rules whose condition is true, meaning you shouldn't have opened the door.

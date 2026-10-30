@@ -39,6 +39,10 @@ public class CameraZoom : MonoBehaviour
     [Header("Smooth Curve")]
     public AnimationCurve zoomCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
+    // True while the camera is at startPoint. Turns false as soon as it heads
+    // for the window or the door, or jumps to a killer.
+    public bool IsAtStart { get; private set; }
+
     private float flashAlpha = 0f;
     private float vignetteAlpha = 0f;
     private Texture2D vignetteTexture;
@@ -75,6 +79,7 @@ public class CameraZoom : MonoBehaviour
 
     public IEnumerator PeekThroughWindow()
     {
+        IsAtStart = false;
         yield return MoveCameraRoutine(startPoint.position, startPoint.rotation, windowTarget.position, windowTarget.rotation);
 
         float dwellElapsed = 0f;
@@ -94,11 +99,13 @@ public class CameraZoom : MonoBehaviour
         }
 
         yield return MoveCameraRoutine(targetPos, baseTargetRot, startPoint.position, startPoint.rotation);
+        IsAtStart = true;
     }
 
     // waitAfterOpen: how long to look at the opened door before continuing.
     public IEnumerator GoToDoorAndOpen(float waitAfterOpen)
     {
+        IsAtStart = false;
         yield return MoveCameraRoutine(startPoint.position, startPoint.rotation, doorTarget.position, doorTarget.rotation);
 
         if (doorAnimator != null)
@@ -112,6 +119,7 @@ public class CameraZoom : MonoBehaviour
 
     public IEnumerator KillerSequence()
     {
+        IsAtStart = false;
         Transform randomHead = FindRandomKillerViewPoint();
         if (randomHead != null)
         {
@@ -201,6 +209,7 @@ public class CameraZoom : MonoBehaviour
         {
             transform.position = startPoint.position;
             transform.rotation = startPoint.rotation;
+            IsAtStart = true;
         }
 
         flashAlpha = 0f;

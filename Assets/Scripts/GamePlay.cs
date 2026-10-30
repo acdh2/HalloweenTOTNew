@@ -8,6 +8,8 @@ public class GamePlay : GamePlayBase
 {
     public GameObject visitorsPrefab;
     public GameObject gardenPrefab;
+    [Tooltip("Shows the active rules at the bottom of the screen. Added automatically when empty.")]
+    public RuleBrowser ruleBrowser;
 
     [Tooltip("Random wait time between rounds, minimum and maximum in seconds.")]
     public float minWaitTime = 2f;
@@ -68,6 +70,7 @@ public class GamePlay : GamePlayBase
     void Awake()
     {
         int randomNumber = Random.Range(1, 5);
+        string randomNumberText = GetNumberWord(randomNumber);
 
         RuleSet.all = new List<Rule> {
             //new Rule("someone is wearing a purple hat", "someone was wearing a purple hat", () => GamePlayHelpers.Exists("Hat1")),
@@ -75,10 +78,10 @@ public class GamePlay : GamePlayBase
             //new Rule("there are an uneven amount of tricksters", "the amount of visitors was uneven", () => !GamePlayHelpers.CountIsEven("Trickster")),
             //new Rule("there are an even amount of pumpkins", "the amount of pumpkins was even", () => GamePlayHelpers.CountIsEven("Pumpkin1")),
             //new Rule("there are less than 3 candles", "there were less than 3 candles", () => GamePlayHelpers.Count("candle") < 3, "Candles"),
-            new Rule($"there are less than {randomNumber} candles", $"there were less than {randomNumber} candles", () => GamePlayHelpers.Count("Candle") < randomNumber),
+            new Rule($"there are less than {randomNumberText} candles", $"there were less than {randomNumber} candles", () => GamePlayHelpers.Count("Candle") < randomNumber, "Candles"),
             new Rule("the porch light is red", "the porch light was red",() => GamePlayHelpers.GetColor("Point Light") == Color.red, "Point Light"),
             new Rule("there is a purple witch", "there was no purple witch", () => GamePlayHelpers.HasMeshWithMaterial("Witch", "Costume1"), ""),
-            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") == 0, ""),
+            new Rule("your heard a doorbell sound", "there was no doorbell sound", () => GamePlayHelpers.GetLastAudioId("VisitorsArrive") < 3, ""),
         };
 
     }
@@ -162,6 +165,8 @@ public class GamePlay : GamePlayBase
     override protected IEnumerator MainGameLoop()
     {
         RuleSet ruleset = new RuleSet();
+        if (ruleBrowser == null && !TryGetComponent(out ruleBrowser)) ruleBrowser = gameObject.AddComponent<RuleBrowser>();
+        ruleBrowser.Init(cameraZoom, message);
 
         GameObject garden = GamePlayHelpers.Find("Garden").gameObject;
         int round = 0;
@@ -196,16 +201,19 @@ public class GamePlay : GamePlayBase
                     string rule = ruleset.DeactivateRule(out int number);
                     AudioManager.PlaySound("NewRule");
                     yield return ShowMessage($"Rule #{number} removed: You no longer have to check if\n{rule}", false, ruleMessageDuration);
+                    ruleBrowser.SetRules(ruleset);
                 }
                 else if (reactivate) {
                     string rule = ruleset.ActivateRule(out int number);
                     AudioManager.PlaySound("NewRule");
                     yield return ShowMessage($"Rule #{number} is again in action: |Check if\n{rule}", false, ruleMessageDuration);
+                    ruleBrowser.SetRules(ruleset, number);
                 }
                 else if (canAdd) {
                     string rule = ruleset.AddRule(out int number);
                     AudioManager.PlaySound("NewRule");
                     yield return ShowMessage($"Rule #{number}: |Don't answer if\n{rule}", false, ruleMessageDuration);
+                    ruleBrowser.SetRules(ruleset, number);
                 }
             }
 
